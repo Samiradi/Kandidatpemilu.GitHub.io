@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Polling Pemilihan Kandidat</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            padding: 20px;
+            background-image: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            margin-top: 30px;
+            margin-bottom: 30px;
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #2c3e50;
+            font-size: 2.5rem;
+            position: relative;
+            padding-bottom: 15px;
+        }
+        
+        h1:after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 4px;
+            background-color: #3498db;
+            border-radius: 2px;
+        }
+        
+        .timer-container {
+            text-align: center;
+            margin-bottom: 40px;
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+        }
+        
+        .timer-label {
+            font-size: 1.2rem;
+            color: #7f8c8d;
+            margin-bottom: 10px;
+        }
+        
+        .timer {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #e74c3c;
+            letter-spacing: 2px;
+        }
+        
+        .candidates {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+        
+        .candidate {
+            text-align: center;
+            padding: 25px 15px;
+            border-radius: 12px;
+            background-color: #f8f9fa;
+            transition: all 0.3s ease;
+            border: 1px solid #eee;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .candidate:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, #3498db, #2ecc71);
+        }
+        
+        .candidate:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .candidate img {
+            width: 180px;
+            height: 180px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 20px;
+            border: 5px solid #fff;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .candidate h3 {
+            margin-bottom: 15px;
+            color: #2c3e50;
+            font-size: 1.4rem;
+        }
+        
+        .vote-btn {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(50, 152, 219, 0.3);
+        }
+        
+        .vote-btn:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(50, 152, 219, 0.4);
+        }
+        
+        .vote-btn:disabled {
+            background-color: #95a5a6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .results {
+            margin-top: 40px;
+        }
+        
+        .results h2 {
+            text-align: center;
+            margin-bottom: 25px;
+            color: #2c3e50;
+            font-size: 2rem;
+            position: relative;
+            padding-bottom: 15px;
+        }
+        
+        .results h2:after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 3px;
+            background-color: #2ecc71;
+            border-radius: 2px;
+        }
+        
+        .result-item {
+            margin-bottom: 25px;
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+        }
+        
+        .result-name {
+            font-weight: bold;
+            margin-bottom: 10px;
+            font-size: 1.2rem;
+            color: #2c3e50;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .progress-bar {
+            height: 25px;
+            background-color: #ecf0f1;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .progress {
+            height: 100%;
+            background: linear-gradient(90deg, #3498db, #2ecc71);
+            border-radius: 15px;
+            transition: width 0.8s ease;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 10px;
+            color: white;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+        
+        .percentage {
+            text-align: right;
+            margin-top: 8px;
+            font-weight: bold;
+            color: #7f8c8d;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: #2ecc71;
+            color: white;
+            padding: 18px 25px;
+            border-radius: 8px;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+            transform: translateX(400px);
+            transition: transform 0.4s ease;
+            z-index: 1000;
+            font-weight: 500;
+            font-size: 1rem;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        .poll-ended {
+            text-align: center;
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            font-weight: bold;
+            font-size: 1.2rem;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+        }
+        
+        .total-votes {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 1.2rem;
+            color: #7f8c8d;
+        }
+        
+        .total-votes span {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 25px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .timer {
+                font-size: 2rem;
+            }
+            
+            .candidates {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 15px;
+            }
+            
+            .candidate img {
+                width: 140px;
+                height: 140px;
+            }
+            
+            .candidate h3 {
+                font-size: 1.1rem;
+            }
+            
+            .vote-btn {
+                padding: 10px 20px;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Polling Pemilihan Kandidat</h1>
+        
+        <div class="timer-container">
+            <div class="timer-label">Waktu tersisa:</div>
+            <div class="timer" id="timer">Memuat...</div>
+        </div>
+        
+        <div id="poll-status"></div>
+        
+        <div class="candidates" id="candidates">
+            <div class="candidate">
+                <img src="https://z-cdn-media.chatglm.cn/files/d4d0d807-f7f1-446d-84ab-86527e925ce3_IMG-20250909-WA0018.jpg?auth_key=1788925635-7497ebd38f344a6cb6dbcf88cbe9b708-0-f61637d1e5ed1005ec40a6f112e9402e" alt="Muhammad Ali">
+                <h3>Muhammad Ali</h3>
+                <button class="vote-btn" data-candidate="Muhammad Ali">Vote</button>
+            </div>
+            
+            <div class="candidate">
+                <img src="https://z-cdn-media.chatglm.cn/files/791a9354-218c-4232-aaaf-f23b52040acb_IMG-20250909-WA0020.jpg?auth_key=1788926617-7455c9d02b2540279038ecc03d32055f-0-db730899ab836bb9a38e51c750b795fa" alt="Ibrahim">
+                <h3>Ibrahim</h3>
+                <button class="vote-btn" data-candidate="Ibrahim">Vote</button>
+            </div>
+            
+            <div class="candidate">
+                <img src="https://z-cdn-media.chatglm.cn/files/ebb3da30-f58a-4d67-bc39-71d47b3a4db4_1746597038261.jpg?auth_key=1788925176-b7b050079e344d2885467ab9a62a1aee-0-ac9145ff92815dd8aec6aab036aad9b6" alt="Supriadi">
+                <h3>Supriadi</h3>
+                <button class="vote-btn" data-candidate="Supriadi">Vote</button>
+            </div>
+            
+            <div class="candidate">
+                <img src="https://picsum.photos/seed/fatahulrazak/180/180.jpg" alt="Fatahul Razak">
+                <h3>Fatahul Razak</h3>
+                <button class="vote-btn" data-candidate="Fatahul Razak">Vote</button>
+            </div>
+        </div>
+        
+        <div class="results">
+            <h2>Hasil Polling</h2>
+            <div id="results-container">
+                <div class="result-item">
+                    <div class="result-name">
+                        <span>Muhammad Ali</span>
+                        <span id="count-muhammad">0</span> suara
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress" id="progress-muhammad" style="width: 0%"></div>
+                    </div>
+                    <div class="percentage" id="percentage-muhammad">0%</div>
+                </div>
+                
+                <div class="result-item">
+                    <div class="result-name">
+                        <span>Ibrahim</span>
+                        <span id="count-ibrahim">0</span> suara
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress" id="progress-ibrahim" style="width: 0%"></div>
+                    </div>
+                    <div class="percentage" id="percentage-ibrahim">0%</div>
+                </div>
+                
+                <div class="result-item">
+                    <div class="result-name">
+                        <span>Supriadi</span>
+                        <span id="count-supriadi">0</span> suara
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress" id="progress-supriadi" style="width: 0%"></div>
+                    </div>
+                    <div class="percentage" id="percentage-supriadi">0%</div>
+                </div>
+                
+                <div class="result-item">
+                    <div class="result-name">
+                        <span>Fatahul Razak</span>
+                        <span id="count-fatahul">0</span> suara
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress" id="progress-fatahul" style="width: 0%"></div>
+                    </div>
+                    <div class="percentage" id="percentage-fatahul">0%</div>
+                </div>
+            </div>
+            
+            <div class="total-votes">
+                Total Suara: <span id="total-votes">0</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="notification" id="notification">Terima kasih telah melakukan voting!</div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Inisialisasi data
+            const candidates = ['Muhammad Ali', 'Ibrahim', 'Supriadi', 'Fatahul Razak'];
+            const candidateIds = ['muhammad', 'ibrahim', 'supriadi', 'fatahul'];
+            
+            // Cek apakah sudah ada data voting di localStorage
+            let votes = JSON.parse(localStorage.getItem('votes')) || {
+                'Muhammad Ali': 0,
+                'Ibrahim': 0,
+                'Supriadi': 0,
+                'Fatahul Razak': 0
+            };
+            
+            // Cek apakah user sudah voting
+            const hasVoted = localStorage.getItem('hasVoted') === 'true';
+            
+            // Update tampilan hasil voting
+            updateResults();
+            
+            // Set timer
+            updateTimer();
+            const timerInterval = setInterval(updateTimer, 1000);
+            
+            // Cek status polling
+            checkPollStatus();
+            
+            // Event listener untuk tombol vote
+            const voteButtons = document.querySelectorAll('.vote-btn');
+            voteButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    if (hasVoted) {
+                        showNotification('Anda sudah melakukan voting!');
+                        return;
+                    }
+                    
+                    const candidateName = this.getAttribute('data-candidate');
+                    votes[candidateName]++;
+                    
+                    // Simpan ke localStorage
+                    localStorage.setItem('votes', JSON.stringify(votes));
+                    localStorage.setItem('hasVoted', 'true');
+                    
+                    // Update tampilan
+                    updateResults();
+                    showNotification('Terima kasih telah melakukan voting!');
+                    
+                    // Nonaktifkan semua tombol
+                    voteButtons.forEach(btn => {
+                        btn.disabled = true;
+                    });
+                });
+                
+                // Nonaktifkan tombol jika sudah voting
+                if (hasVoted) {
+                    button.disabled = true;
+                }
+            });
+            
+            // Fungsi untuk update hasil voting
+            function updateResults() {
+                const totalVotes = Object.values(votes).reduce((sum, count) => sum + count, 0);
+                document.getElementById('total-votes').textContent = totalVotes;
+                
+                candidates.forEach((candidate, index) => {
+                    const count = votes[candidate];
+                    const percentage = totalVotes > 0 ? Math.round((count / totalVotes) * 100) : 0;
+                    
+                    document.getElementById(`count-${candidateIds[index]}`).textContent = count;
+                    document.getElementById(`progress-${candidateIds[index]}`).style.width = `${percentage}%`;
+                    document.getElementById(`progress-${candidateIds[index]}`).textContent = `${percentage}%`;
+                    document.getElementById(`percentage-${candidateIds[index]}`).textContent = `${percentage}%`;
+                });
+            }
+            
+            // Fungsi untuk update timer
+            function updateTimer() {
+                const now = new Date();
+                const targetTime = new Date();
+                targetTime.setHours(18, 20, 0, 0); // Set target jam 18:20
+                
+                // Jika jam 18:20 sudah lewat hari ini, set untuk besok
+                if (now > targetTime) {
+                    targetTime.setDate(targetTime.getDate() + 1);
+                }
+                
+                const diff = targetTime - now;
+                
+                if (diff <= 0) {
+                    document.getElementById('timer').textContent = 'Polling telah berakhir';
+                    clearInterval(timerInterval);
+                    endPoll();
+                    return;
+                }
+                
+                const hours = Math.floor(diff / (1000 * 60 * 60));
+                const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+                
+                document.getElementById('timer').textContent = 
+                    `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }
+            
+            // Fungsi untuk cek status polling
+            function checkPollStatus() {
+                const now = new Date();
+                const targetTime = new Date();
+                targetTime.setHours(18, 20, 0, 0);
+                
+                if (now > targetTime) {
+                    endPoll();
+                }
+            }
+            
+            // Fungsi untuk mengakhiri polling
+            function endPoll() {
+                document.getElementById('poll-status').innerHTML = 
+                    '<div class="poll-ended">Polling telah berakhir!</div>';
+                
+                const voteButtons = document.querySelectorAll('.vote-btn');
+                voteButtons.forEach(button => {
+                    button.disabled = true;
+                });
+            }
+            
+            // Fungsi untuk menampilkan notifikasi
+            function showNotification(message) {
+                const notification = document.getElementById('notification');
+                notification.textContent = message;
+                notification.classList.add('show');
+                
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                }, 3000);
+            }
+        });
+    </script>
+</body>
+</html>
